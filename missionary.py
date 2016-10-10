@@ -3,6 +3,7 @@
 #   UW EE 562
 #   HW 1
 
+
 # Initial params
 init_state = (3, 3, 'L')
 goal_state = (0, 0, 'R')
@@ -38,9 +39,9 @@ def apply_action(state, a):
             if state[2] == 'L':  # left side boat, subtract people
                 j = -1
             new[i] = state[i] + j * a[i]  # apply action
-
     if 0 <= new[0] <= 3 and 0 <= new[1] <= 3:  # check number of M and C
         return tuple(new)  # Only return valid state EX: invalid (4, 1, 0)
+
 
 def solution_info():
     # Prints info for solution
@@ -49,17 +50,15 @@ def solution_info():
 
 
 def dfs(state):
-    # DFS algorithm tries each action and that backtrackes if not 'safe' state
+    # DFS algorithm tries each action and that backtracks if not 'safe' state
     visited.append(state)  # FIFO Stack
     if state == goal_state:
         print solution_info()
-        # count['valid'] = count['dead'] = count['revisit'] = 0  # reset counter
         count['solution'] += 1
     for a in legal_actions:
         new_state = apply_action(state, a)
         if new_state and is_safe(new_state):  # explore new state if safe
             dfs(new_state)
-
     visited.pop()  # next node
 
 
