@@ -4,16 +4,16 @@
 #   HW 1
 
 # Initial params
-legal_actions = [(0, 1), (1, 0), (1, 1), (0, 2), (2, 0)]
 init_state = (3, 3, 'L')
 goal_state = (0, 0, 'R')
-count = {'dead': 0, 'revisit': 0, 'valid': 0}
-visited = []
+visited = []  # tracks explored nodes
+legal_actions = [(2, 0), (0, 2), (1, 1), (0, 1), (1, 0)]  # valid action set
+count = {'dead': 0, 'revisit': 0, 'valid': 0, 'solution': 1}  # counter object
 
 
 def is_safe(state):
-    # Checks for dead state or visited state and tracks count
-    count['valid'] += 1
+    # Checks for dead state or visited state and tracks count, returns safe bool
+    # Count includes starting and goal node
     if not (state[0] == state[1] or state[0] == 3 or state[0] == 0):
         count['dead'] += 1
         return False
@@ -26,7 +26,7 @@ def is_safe(state):
 
 
 def apply_action(state, a):
-    # Applies action to state and moves boat to opposite side
+    # Applies input action to input state and moves boat to opposite side
     # return new state if valid state, otherwise return None
     new = list(state)
     for i, s in enumerate(state):
@@ -42,38 +42,23 @@ def apply_action(state, a):
     if 0 <= new[0] <= 3 and 0 <= new[1] <= 3:  # check number of M and C
         return tuple(new)  # Only return valid state EX: invalid (4, 1, 0)
 
-
-def display(left):
-    # Print diagram of current state
-    right = (3 - left[0], 3 - left[1])
-    visual = '%s%s' % (left[0] * 'M', left[1] * 'C')
-    visual += '|<B>\t\t|' if left[2] == 'L' else '|\t\t<B>|'
-    visual += '%s%s\n' % (right[0] * 'M', right[1] * 'C')
-    line = 18 * '-' + '\n'
-    visual = '\n' + line + visual + line
-    return visual
-
-
-def info(state, new_state, a):
-    # Prints info for each state change
-    return display(state) + \
-           'Before : %r \nAction : %r \nAfter  : %r\nVisited: %r\nCount: %r' \
-           % (state, a, new_state, visited, count)
+def solution_info():
+    # Prints info for solution
+    return 'Solution %d\n Total Count: %r\n Repeat Count: %r\n Illegal Count: %r\n States: %r\n' \
+           % (count['solution'], count['valid'], count['revisit'], count['dead'], visited)
 
 
 def dfs(state):
     # DFS algorithm tries each action and that backtrackes if not 'safe' state
     visited.append(state)  # FIFO Stack
+    if state == goal_state:
+        print solution_info()
+        # count['valid'] = count['dead'] = count['revisit'] = 0  # reset counter
+        count['solution'] += 1
     for a in legal_actions:
         new_state = apply_action(state, a)
-        if new_state:  # explore new state
-            if new_state == goal_state:
-                print info(state, new_state, a)
-                print '\nGoal reached'
-                exit()
-            if is_safe(new_state):
-                print info(state, new_state, a)
-                dfs(new_state)
+        if new_state and is_safe(new_state):  # explore new state if safe
+            dfs(new_state)
 
     visited.pop()  # next node
 
