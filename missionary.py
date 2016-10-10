@@ -1,6 +1,9 @@
 # if __name__ == '__main__':
-def display(state):
-    left = state
+# TODO bundle defs into class with self.state,debug,init,count
+# TODO add comments
+
+
+def display(left):
     right = (3 - left[0], 3 - left[1], 1 - left[2])
     visual = '%s%s' % (left[0] * 'M', left[1] * 'C')
     if left[2] == 0:
@@ -13,45 +16,23 @@ def display(state):
     return visual
 
 
-def valid_action(action):
-    return action in legal_actions
-
-
-def valid_state(state):
+# TODO dont need to check all three return false on first unsafe...
+def is_safe(state, debug=False):
     valid = (0 <= state[0] <= 3 and
-            0 <= state[1] <= 3 and
-            0 <= state[2] <= 1)
-    if not valid:
-        print 'DEBUG NOT VALID STATE'
-    return valid
-
-
-def is_dead(state):
+             0 <= state[1] <= 3 and
+             0 <= state[2] <= 1)
+    seen = (state in visited)
     dead = not (state[0] == state[1] or
                 state[0] == 3 or
                 state[0] == 0)
-    if dead:
-        print 'DEBUG DEAD'
-    return dead
-
-
-def already_visited(state):
-    seen = (state in visited)
-    if seen:
-        print 'DEBUG ALREADY VISITED'
-    return seen
-
-
-def is_goal(state):
-    goal = (state == goal_state)
-    if goal:
-        print 'DEBUG GOAL!!!!!!'
-    return goal
+    safe = (valid and not dead and not seen)
+    if debug and not safe:
+        print 'Bad State: %s\n Invalid: %s\n Seen: %s\n Dead: %s' \
+              % (state, not valid, seen, dead)
+    return safe
 
 
 def apply_action(state, a):
-    if not valid_action(a):
-        raise ValueError('Invalid Action'), a
     new = list(state)
     for i, s in enumerate(state):
         if i == 2:  # flip side
@@ -65,28 +46,32 @@ def apply_action(state, a):
     return tuple(new)
 
 
-def recurse(state):
-    visited.append(state)
-    print visited
-    print display(state)
-    for a in legal_actions:
-        print 'Before : ', state
-        print 'Action : ', a
-        new = apply_action(state, a)
-        print 'After  : ', new
-        if is_goal(new):
-            'GOAL'
-            exit()
-        if valid_state(new) and not is_dead(new) and not already_visited(new):
-            print 'CONTINUE'
-            recurse(new)
+def info(state, new_state, a):
+    return display(state) + \
+           'Visited: %r\nBefore : %r \nAction : %r \nAfter  : %r' \
+           % (visited, state, a, new_state)
 
-    print 'VISIT PARENT\n\n'
+
+# TODO dont need global
+def dfs(state):
+    visited.append(state)  # FIFO Stack
+    global count
+    for a in legal_actions:
+        new_state = apply_action(state, a)
+        count += 1
+        if new_state == goal_state:
+            print info(state, new_state, a)
+            print 'Goal reached after %d tries' % count
+            exit()
+        if is_safe(new_state, True):
+            print info(state, new_state, a)
+            dfs(new_state)
     visited.pop()
 
 
-legal_actions = [(1, 0), (0, 1), (1, 1), (0, 2), (2, 0)]
+legal_actions = [(0, 1), (1, 0), (1, 1), (0, 2), (2, 0)]
 init_state = (3, 3, 0)
 goal_state = (0, 0, 1)
 visited = []
-recurse(init_state)
+count = 0
+dfs(init_state)
