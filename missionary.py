@@ -18,25 +18,35 @@ def valid_action(action):
 
 
 def valid_state(state):
-    return (0 <= state[0] <= 3 and
+    valid = (0 <= state[0] <= 3 and
             0 <= state[1] <= 3 and
             0 <= state[2] <= 1)
+    if not valid:
+        print 'DEBUG NOT VALID STATE'
+    return valid
 
 
 def is_dead(state):
-    return not (state[0] == state[1] or
+    dead = not (state[0] == state[1] or
                 state[0] == 3 or
                 state[0] == 0)
+    if dead:
+        print 'DEBUG DEAD'
+    return dead
 
 
-def already_visited(state):  # todo remove def
-    print 'DEBUG ALREADY VISITED'
-    return state in visited
+def already_visited(state):
+    seen = (state in visited)
+    if seen:
+        print 'DEBUG ALREADY VISITED'
+    return seen
 
 
-def is_goal(state):  # todo remove def
-    print 'DEBUG GOAL!!!!!!'
-    return state == goal_state
+def is_goal(state):
+    goal = (state == goal_state)
+    if goal:
+        print 'DEBUG GOAL!!!!!!'
+    return goal
 
 
 def apply_action(state, a):
@@ -52,31 +62,31 @@ def apply_action(state, a):
             if state[2] == 0:  # left side boat
                 j = -1
             new[i] = state[i] + j * a[i]  # apply action
-    new = tuple(new)
-    if not valid_state(new):
-        raise ValueError('Invalid State', new)
-    return new
+    return tuple(new)
 
 
 def recurse(state):
+    visited.append(state)
+    print visited
+    print display(state)
     for a in legal_actions:
-        display(state)
-        print 'Action : ', a
         print 'Before : ', state
-
+        print 'Action : ', a
         new = apply_action(state, a)
         print 'After  : ', new
         if is_goal(new):
             'GOAL'
-            break
-        if not is_dead(new) and not already_visited(new):
-            'CONTINUE'
-            visited.add(state)
-            recurse(visited.pop)
+            exit()
+        if valid_state(new) and not is_dead(new) and not already_visited(new):
+            print 'CONTINUE'
+            recurse(new)
+
+    print 'VISIT PARENT\n\n'
+    visited.pop()
 
 
-legal_actions = [(0, 1), (1, 0), (0, 2), (2, 0), (1, 1)]
+legal_actions = [(1, 0), (0, 1), (1, 1), (0, 2), (2, 0)]
 init_state = (3, 3, 0)
 goal_state = (0, 0, 1)
-visited = [init_state]
+visited = []
 recurse(init_state)
