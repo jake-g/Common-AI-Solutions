@@ -1,3 +1,4 @@
+/Icon
 ### IPythonNotebook template
 # Temporary data
 .ipynb_checkpoints/
@@ -8,6 +9,8 @@
 .LSOverride
 Icon
 Icon\r
+/Icon
+
 
 
 # IntelliJ project files

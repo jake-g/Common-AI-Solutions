@@ -8,7 +8,6 @@
 init_state = (3, 3, 'L')
 goal_state = (0, 0, 'R')
 visited = []  # tracks explored nodes
-set = Set()
 legal_actions = [(2, 0), (0, 2), (1, 1), (0, 1), (1, 0)]  # valid action set
 count = {'dead': 0, 'revisit': 0, 'valid': 0, 'solution': 1}  # counter object
 
@@ -53,7 +52,6 @@ def solution_info():
 def dfs(state):
     # DFS algorithm tries each action and that backtracks if not 'safe' state
     visited.append(state)  # FIFO Stack
-    set.add((state[0], state[1]))
     if state == goal_state:
         print solution_info()
         count['solution'] += 1
