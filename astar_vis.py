@@ -1,0 +1,57 @@
+import pygame
+import sys
+from astar import *
+
+BOUND = 40
+FPS = 1
+
+# check for quit events
+def quit_handler():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit();
+            sys.exit();
+
+
+# Build static map
+def draw_map(screen, map, path, clock):
+    last_node = path[0]
+    screen.fill((255, 255, 255))  # erase the screen
+    for rect in map.rects:
+        pygame.draw.lines(screen, (0, 0, 0), True, rect, 2)
+        for p in rect:
+            pygame.draw.circle(screen, (0, 0, 255), p, 3)
+
+    # drap path
+    for node in path:
+        pygame.draw.lines(screen, (255, 0, 0), True, [last_node, node], 2)
+        pygame.draw.circle(screen, (255, 0, 0), last_node, 5)
+        pygame.draw.circle(screen, (255, 255, 0), node, 5)
+        last_node = node
+        pygame.display.update()
+        msElapsed = clock.tick(FPS)
+
+
+    pygame.draw.circle(screen, (0, 255, 0), map.goal, 5)
+    pygame.display.update()
+
+
+def visualize(f):
+    scale = 600 / BOUND
+    map = Map(f, scale)
+    p = Problem(map)
+    pygame.init()
+    pygame.display.set_caption('A* Pathfinding')
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((map.scale * BOUND, map.scale * BOUND))
+    path = astar(p)
+    draw_map(screen, map, path, clock)
+
+    while 1:
+        quit_handler()
+        msElapsed = clock.tick(FPS)
+
+if __name__ == '__main__':
+
+    visualize('data2.txt')
+

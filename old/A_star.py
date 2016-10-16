@@ -22,7 +22,7 @@ class Problem(object):
         while n.parent:
             path.append(n)
             n = n.parent
-        return path.append(curr)
+        return path.append(n)
 
     def search(self, start, end):
         O = set()
