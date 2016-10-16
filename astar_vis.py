@@ -18,9 +18,11 @@ def draw_map(screen, map, path, clock):
     last_node = path[0]
     screen.fill((255, 255, 255))  # erase the screen
     for rect in map.rects:
-        pygame.draw.lines(screen, (0, 0, 0), True, rect, 2)
+        pygame.draw.lines(screen, (0, 0, 0), True, rect, 2)     #draw rectangles
         for p in rect:
-            pygame.draw.circle(screen, (0, 0, 255), p, 3)
+            pygame.draw.circle(screen, (0, 0, 255), p, 3)   # draw corners
+    pygame.draw.circle(screen, (0, 255, 0), map.goal, 5)  # draw goal
+    pygame.display.update()
 
     # drap path
     for node in path:
@@ -45,7 +47,10 @@ def visualize(f):
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((map.scale * BOUND, map.scale * BOUND))
     path = astar(p)
-    draw_map(screen, map, path, clock)
+    if path:
+        draw_map(screen, map, path, clock)
+    else:
+        print 'No solution...'
 
     while 1:
         quit_handler()
@@ -53,5 +58,5 @@ def visualize(f):
 
 if __name__ == '__main__':
 
-    visualize('data2.txt')
+    visualize('data4.txt')
 
