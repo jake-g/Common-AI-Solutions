@@ -5,6 +5,7 @@ from astar import *
 BOUND = 40
 FPS = 1
 
+
 # check for quit events
 def quit_handler():
     for event in pygame.event.get():
@@ -17,9 +18,9 @@ def quit_handler():
 def draw_map(screen, map):
     screen.fill((255, 255, 255))  # erase the screen
     for rect in map.rects:
-        pygame.draw.lines(screen, (0, 0, 0), True, rect, 2)     #draw rectangles
+        pygame.draw.lines(screen, (0, 0, 0), True, rect, 2)  # draw rectangles
         for p in rect:
-            pygame.draw.circle(screen, (0, 0, 255), p, 3)   # draw corners
+            pygame.draw.circle(screen, (0, 0, 255), p, 3)  # draw corners
     pygame.draw.circle(screen, (0, 255, 0), map.goal, 5)  # draw goal
     pygame.display.update()
 
@@ -36,9 +37,9 @@ def update_map(screen, map, path, clock):
         pygame.display.update()
         msElapsed = clock.tick(FPS)
 
-
     pygame.draw.circle(screen, (0, 255, 0), map.goal, 5)
     pygame.display.update()
+
 
 def visualize(f):
     scale = 600 / BOUND
@@ -55,11 +56,10 @@ def visualize(f):
     else:
         print 'No solution...'
 
-    while 1:
+    while 1:  # stay open after solve
         quit_handler()
         msElapsed = clock.tick(FPS)
 
+
 if __name__ == '__main__':
-
     visualize('data1.txt')
-

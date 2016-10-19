@@ -1,29 +1,29 @@
 import math
 from heapq import *
 
-
+# TODO COMMENT CODE
 class Map:
     def get_point(self, line):
-        return tuple([self.scale*x for x in map(int, line.split())])
+        return tuple([self.scale * x for x in map(int, line.split())])
 
     def get_rectangle(self, line):
-        arr = [self.scale*x for x in map(int, line.split())]
+        arr = [self.scale * x for x in map(int, line.split())]
         rect = zip(arr[0::2], arr[1::2])
         return rect
 
     def get_lines_from_rect(self, r):
-        return [(r[0],r[1]),
-                (r[0],r[3]),
-                (r[0],r[2]),
-                (r[2],r[1]),
-                (r[2],r[3]),
-                (r[1],r[3])]
+        return [(r[0], r[1]),
+                (r[0], r[3]),
+                (r[0], r[2]),
+                (r[2], r[1]),
+                (r[2], r[3]),
+                (r[1], r[3])]
 
     def __init__(self, f, scale=1):
-        self.nodes =  set()
+        self.nodes = set()
         self.lines = []
-        self.rects = [] # optional for visual display
-        self.scale = scale # optional for visual display= []
+        self.rects = []  # optional for visual display
+        self.scale = scale  # optional for visual display= []
 
         # Parse file into Map object
         with open(f) as f:
@@ -44,14 +44,8 @@ class Map:
         print self.lines
 
 
-
-
 class Problem:
-    # def get_lines(self, rects):
-    #     # all combos of lines from nodes
-    #     return itertools.combinations(self.nodes, 2)
-
-    def __init__(self, m): # Problem database
+    def __init__(self, m):  # Problem database
         self.start = m.start
         self.goal = m.goal
         self.nodes = m.nodes  # all nodes (rectangle corners)
@@ -70,27 +64,6 @@ def distance(start, end):  # heuristic distance from a to b
 
 # Checks if line1 intersects line2
 def intersect(p1, p2, p3, p4):
-
-    # print p1, p2, 'vs', p3, p4
-    # if p1 == p3 or p1 == p4 or p2 == p3 or p2 == p4:
-    #     return False
-    # denominator = ((p2[0] - p1[0]) * (p4[1] - p3[1])) - ((p2[1] - p1[1]) * (p4[0] - p3[0]));
-    # numerator1 = ((p1[1] - p3[1]) * (p4[0] - p3[0])) - ((p1[0] - p3[0]) * (p4[1] - p3[1]));
-    # numerator2 = ((p1[1] - p3[1]) * (p2[0] - p1[0])) - ((p1[0] - p3[0]) * (p2[1] - p1[1]));
-    # # print denominator,numerator1,numerator2
-    # # Detect coincident lines (has a problem, read below)
-    # if denominator == 0:
-    #     return numerator1 == 0 and numerator2 == 0;
-    #
-    # r = numerator1 / denominator
-    # s = numerator2 / denominator
-    #
-    # return (0 >= r <= 1) and (0 >= s <= 1)
-
-
-
-
-
     def ccw(a, b, c):
         return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0])
 
@@ -99,20 +72,17 @@ def intersect(p1, p2, p3, p4):
             return False
         return distance(line[0], p) + distance(line[1], p) == distance(line[0], line[1])
 
-    if sorted((p1, p2)) == sorted((p3, p4)): # same segment
-        print 'same line'
+    # TODO clean up cases
+    if sorted((p1, p2)) == sorted((p3, p4)):  # same segment
         return False
 
     if p2 == p3 or p2 == p4:
-        # print '3rd case'
         return False
 
-    if point_on_line((p1,p2), p3) or point_on_line((p1,p2), p4) or point_on_line((p3,p4), p1) or point_on_line((p3,p4), p2):
-        print '2nd case'
+    if point_on_line((p1, p2), p3) or point_on_line((p1, p2), p4) or point_on_line((p3, p4), p1) or point_on_line(
+            (p3, p4), p2):
         return True
 
-
-    # print '%r != %r \nand %r != %r' % (ccw(p1, p3, p4),ccw(p2, p3, p4),ccw(p1, p2, p3),ccw(p1, p2, p4))
     return ccw(p1, p3, p4) != ccw(p2, p3, p4) and ccw(p1, p2, p3) != ccw(p1, p2, p4)
 
 
@@ -123,7 +93,8 @@ def illegal(start, end, lines):
         if intersect(start, end, l[0], l[1]):
             print 'True'
             return True
-        else: print 'False'
+        else:
+            print 'False'
     return False
 
 
@@ -136,7 +107,7 @@ def print_path(path, cost):
 
 def astar(p):
     # Init
-    p.cost[p.start] = 0; # cost to start node
+    p.cost[p.start] = 0;  # cost to start node
     p.score[p.start] = distance(p.start, p.goal)
     heappush(p.open, (p.score[p.start], p.start))
 
@@ -182,8 +153,8 @@ def astar(p):
 
     return False
 
+
 if __name__ == '__main__':
     map = Map('data1.txt')
-    p =Problem(map)
+    p = Problem(map)
     astar(p)
-
