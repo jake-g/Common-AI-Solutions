@@ -1,9 +1,20 @@
+# A* Pathfinding Problem
+#   Jake Garrison
+#   UW EE 562
+#   HW 2
+
 import pygame
 import sys
 from astar import *
 
+
+'''
+Visualizes the path and map
+need to have pygame. run `pip install pygame` to use visualizer, otherwise just run `astar.py
+'''
+
 BOUND = 40
-FPS = 1
+FPS = 2
 
 
 # check for quit events
@@ -53,6 +64,7 @@ def visualize(f):
     path = astar(p)
     if path:
         update_map(screen, map, path, clock)
+        print 'Note: lines and costs are scaled by %r to fill the window' % scale
     else:
         print 'No solution...'
 
@@ -60,6 +72,5 @@ def visualize(f):
         quit_handler()
         msElapsed = clock.tick(FPS)
 
-
 if __name__ == '__main__':
-    visualize('data1.txt')
+    visualize('data_personal.txt')
