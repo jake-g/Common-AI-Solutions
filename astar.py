@@ -63,6 +63,8 @@ def distance(start, end):  # heuristic distance from a to b
 
 # Checks if line1 intersects line2
 def intersect(p1, p2, p3, p4):
+    if p2 == (9, 6):
+        print 'betch'
     def ccw(a, b, c):
         return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0])
 
@@ -70,12 +72,12 @@ def intersect(p1, p2, p3, p4):
         if line[0] == p or line[1] == p:
             return False
         return distance(line[0], p) + distance(line[1], p) == distance(line[0], line[1])
-
+    print p1,p2,'vs',p3,p4
     # TODO clean up cases
     if sorted((p1, p2)) == sorted((p3, p4)):  # same segment
         return False
 
-    if p2 == p3 or p2 == p4:
+    if  p1 == p3 or p1 == p4 or p2 == p3 or p2 == p4:
         return False
 
     if point_on_line((p1, p2), p3) or point_on_line((p1, p2), p4) or point_on_line((p3, p4), p1) or point_on_line(
