@@ -38,7 +38,6 @@ class Map:
                 else:
                     rect = self.get_rectangle(line)
                     self.lines.extend(self.get_lines_from_rect(rect))
-                    print self.lines
                     self.nodes |= set(rect)
                     self.rects.append(rect)
         print self.lines
@@ -87,14 +86,9 @@ def intersect(p1, p2, p3, p4):
 
 
 def illegal(start, end, lines):
-    # print lines
     for l in lines:
-
         if intersect(start, end, l[0], l[1]):
-            print 'True'
             return True
-        else:
-            print 'False'
     return False
 
 
