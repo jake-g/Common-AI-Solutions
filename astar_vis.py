@@ -14,8 +14,7 @@ def quit_handler():
 
 
 # Build static map
-def draw_map(screen, map, path, clock):
-    last_node = path[0]
+def draw_map(screen, map):
     screen.fill((255, 255, 255))  # erase the screen
     for rect in map.rects:
         pygame.draw.lines(screen, (0, 0, 0), True, rect, 2)     #draw rectangles
@@ -24,7 +23,11 @@ def draw_map(screen, map, path, clock):
     pygame.draw.circle(screen, (0, 255, 0), map.goal, 5)  # draw goal
     pygame.display.update()
 
-    # drap path
+
+# Dynamic map
+def update_map(screen, map, path, clock):
+    last_node = path[0]
+    # draw path
     for node in path:
         pygame.draw.lines(screen, (255, 0, 0), True, [last_node, node], 2)
         pygame.draw.circle(screen, (255, 0, 0), last_node, 5)
@@ -37,7 +40,6 @@ def draw_map(screen, map, path, clock):
     pygame.draw.circle(screen, (0, 255, 0), map.goal, 5)
     pygame.display.update()
 
-
 def visualize(f):
     scale = 600 / BOUND
     map = Map(f, scale)
@@ -46,9 +48,10 @@ def visualize(f):
     pygame.display.set_caption('A* Pathfinding')
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((map.scale * BOUND, map.scale * BOUND))
+    draw_map(screen, map)
     path = astar(p)
     if path:
-        draw_map(screen, map, path, clock)
+        update_map(screen, map, path, clock)
     else:
         print 'No solution...'
 
@@ -58,5 +61,5 @@ def visualize(f):
 
 if __name__ == '__main__':
 
-    visualize('data4.txt')
+    visualize('data1.txt')
 

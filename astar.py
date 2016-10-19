@@ -1,6 +1,5 @@
 import math
 from heapq import *
-import itertools
 
 
 class Map:
@@ -12,11 +11,22 @@ class Map:
         rect = zip(arr[0::2], arr[1::2])
         return rect
 
+    def get_lines_from_rect(self, r):
+        return [(r[0],r[1]),
+                (r[0],r[3]),
+                (r[0],r[2]),
+                (r[2],r[1]),
+                (r[2],r[3]),
+                (r[1],r[3])]
+
     def __init__(self, f, scale=1):
-        self.nodes = set()
+        self.nodes =  set()
+        self.lines = []
         self.rects = [] # optional for visual display
         self.scale = scale # optional for visual display= []
-        with open(f) as f:  # parse file into Map object
+
+        # Parse file into Map object
+        with open(f) as f:
             for i, line in enumerate(f):
                 line = line.strip()
                 if i is 0:
@@ -27,23 +37,27 @@ class Map:
                     self.n_rects = int(line.strip())
                 else:
                     rect = self.get_rectangle(line)
+                    self.lines.extend(self.get_lines_from_rect(rect))
+                    print self.lines
                     self.nodes |= set(rect)
                     self.rects.append(rect)
+        print self.lines
+
 
 
 
 class Problem:
-    def get_combinations(self):
-        # all combos of lines from nodes
-        return itertools.combinations(self.nodes, 2)
+    # def get_lines(self, rects):
+    #     # all combos of lines from nodes
+    #     return itertools.combinations(self.nodes, 2)
 
-    def __init__(self, m):
+    def __init__(self, m): # Problem database
         self.start = m.start
         self.goal = m.goal
         self.nodes = m.nodes  # all nodes (rectangle corners)
-        self.open = open = []  # need to explore
+        self.open = []  # need to explore
         self.closed = set()  # already explored
-        self.lines = set(self.get_combinations())  # set of possible lines
+        self.lines = m.lines  # set of possible lines
         self.parent = {}  # dictionary of node -> parent
         self.cost = {}  # cost to get to this node from start
         self.score = {}  # score = g(n) + h(n)
@@ -54,21 +68,62 @@ def distance(start, end):  # heuristic distance from a to b
     return math.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2)
 
 
-# Checks if line1 intersects line2 (not including co-linearity
+# Checks if line1 intersects line2
 def intersect(p1, p2, p3, p4):
-    if p1 == p3 or p1 == p4 or p2 == p3 or p2 == p4:
-        return False
+
+    # print p1, p2, 'vs', p3, p4
+    # if p1 == p3 or p1 == p4 or p2 == p3 or p2 == p4:
+    #     return False
+    # denominator = ((p2[0] - p1[0]) * (p4[1] - p3[1])) - ((p2[1] - p1[1]) * (p4[0] - p3[0]));
+    # numerator1 = ((p1[1] - p3[1]) * (p4[0] - p3[0])) - ((p1[0] - p3[0]) * (p4[1] - p3[1]));
+    # numerator2 = ((p1[1] - p3[1]) * (p2[0] - p1[0])) - ((p1[0] - p3[0]) * (p2[1] - p1[1]));
+    # # print denominator,numerator1,numerator2
+    # # Detect coincident lines (has a problem, read below)
+    # if denominator == 0:
+    #     return numerator1 == 0 and numerator2 == 0;
+    #
+    # r = numerator1 / denominator
+    # s = numerator2 / denominator
+    #
+    # return (0 >= r <= 1) and (0 >= s <= 1)
+
+
+
+
 
     def ccw(a, b, c):
         return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0])
 
+    def point_on_line(line, p):  # C is on AB if distance(A,C) + distance(B,C) = length(AB)
+        if line[0] == p or line[1] == p:
+            return False
+        return distance(line[0], p) + distance(line[1], p) == distance(line[0], line[1])
+
+    if sorted((p1, p2)) == sorted((p3, p4)): # same segment
+        print 'same line'
+        return False
+
+    if p2 == p3 or p2 == p4:
+        # print '3rd case'
+        return False
+
+    if point_on_line((p1,p2), p3) or point_on_line((p1,p2), p4) or point_on_line((p3,p4), p1) or point_on_line((p3,p4), p2):
+        print '2nd case'
+        return True
+
+
+    # print '%r != %r \nand %r != %r' % (ccw(p1, p3, p4),ccw(p2, p3, p4),ccw(p1, p2, p3),ccw(p1, p2, p4))
     return ccw(p1, p3, p4) != ccw(p2, p3, p4) and ccw(p1, p2, p3) != ccw(p1, p2, p4)
 
 
 def illegal(start, end, lines):
+    # print lines
     for l in lines:
+
         if intersect(start, end, l[0], l[1]):
+            print 'True'
             return True
+        else: print 'False'
     return False
 
 
@@ -123,12 +178,12 @@ def astar(p):
                 print 'Score:', node_cost + dist
                 heappush(p.open, (p.score[node], node))
             else:
-                print 'Cost to high'
+                print 'Cost too high'
 
     return False
 
 if __name__ == '__main__':
-    map = Map('data3.txt')
+    map = Map('data1.txt')
     p =Problem(map)
     astar(p)
 
