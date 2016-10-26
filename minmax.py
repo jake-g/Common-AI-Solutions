@@ -62,35 +62,11 @@ Tips of how to create your own minimax algorithm.
         2) How to estimate state's scores if a state is not a finishing one.
         Look up _utility function.
 
-@author: Oleksii Molchanovskyi
-@organization: Kyiv Polytechnic Institute
-@country: Ukraine
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-#
-# For the purposes of the testing. Please check the code at the bottom of
-# the file to details
-#
-if __name__ == "__main__":
-    from method import Method
-else:
-    from methods.method import Method
+from method import Method
 
 
-class MinMaxMethod(Method):
+class Minimax(Method):
     """Class with MinMax method for playing Kalah
 
     Main idea:
@@ -107,8 +83,7 @@ class MinMaxMethod(Method):
     Attributes:
         Please refer to method.py for details
     """
-    _name = "Min-max"
-    _short_name = "Min-max"
+
 
     def __init__(self, player_num, ai_level=1, run_time_limit=60):
         """Inits MinMaxMethod object
@@ -119,8 +94,8 @@ class MinMaxMethod(Method):
         #
         # We're using 90% of maximum run time limit to work
         #
-        super(MinMaxMethod, self).__init__(player_num, ai_level,
-                                           run_time_limit * 0.9)
+        super(Minimax, self).__init__(player_num, ai_level,
+                                      run_time_limit * 0.9)
         self._ai_level = max(1, min(ai_level, 5))
 
     def _other_player(self):
@@ -271,7 +246,7 @@ class MinMaxMethod(Method):
         Returns:
             Player's hole number which defines a player's next move
         """
-        super(MinMaxMethod, self).make_move(state)
+        super(Minimax, self).make_move(state)
         print "Input state:", state.to_string()
 
         #
@@ -318,5 +293,5 @@ if __name__ == "__main__":
     state = KalahState(0)
     state._kalahs = [6, 4]
     state._holes = [[1, 4, 0, 0, 0, 0], [0, 0, 0, 0, 3, 1]]
-    method = MinMaxMethod(1, 1)
+    method = Minimax(1, 1)
     print method.make_move(state)
