@@ -1,8 +1,6 @@
 *.zip
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
+.idea/
+Icon*
 ._*
 *.py[cod]
-/Icon
