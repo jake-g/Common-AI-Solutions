@@ -1,28 +1,8 @@
-/Icon
-### IPythonNotebook template
-# Temporary data
-.ipynb_checkpoints/
-
-### OSX template
+*.zip
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
-Icon\r
-/Icon
-
-
-
-# IntelliJ project files
-.idea
-*.iml
-out
-gen
-
-### Python template
-# Byte-compiled / optimized / DLL files
-__pycache__/
+.idea/
+Icon*
+._*
 *.py[cod]
-*$py.class
-
-
+old/
+soln/
