@@ -37,7 +37,7 @@ class ai:
         # f.write(str(time.time() - t_start) + '\n')
         # f.close()
         # print 'move %r' % move
-        return next_state.last_move
+        return self.random_move(state)
 
     def random_move(self, state):
         r = []  # return a random move
@@ -58,32 +58,38 @@ class ai:
 
         def new_state(move):
             # returns new state resulting in applied move
-            assert move < 6
-            assert state.a[move] > 0
 
             def apply_move(move, board):
                 # apply move to board
                 beads = board[move]
                 board[move] = 0  # grab beads
+
+                assert beads > 0
+                assert move < 6
                 while beads >= 0:
                     move += 1
                     board[move % 13] += 1  # drop bead
                     beads -= 1
-                # TODO if move ends on score pit, add a 'go again' flag
-                return board
+
+                if move == 6:  # ended in player's pit +1 turn
+                    return (board, True)  # player moves again
+                else:
+                    return (board, False) # turn over
 
             new = copy.deepcopy(state)  # clone game state
             new.last_move = move
 
             if max_player:  # a is moving
                 board = new.a + [new.af] + new.b
-                board = apply_move(move, board)
+                board, go_again = apply_move(move, board)
+                new.go_again = go_again
                 new.a = board[0:6]
                 new.af = board[6]
                 new.b = board[7::]
             else:  # b is moving
                 board = new.b + [new.bf] + new.a
-                board = apply_move(move, board)
+                board, go_again = apply_move(move, board)
+                new.go_again = go_again
                 new.b = board[0:6]
                 new.bf = board[6]
                 new.a = board[7::]
@@ -93,10 +99,15 @@ class ai:
         for move in get_moves():
             yield new_state(move)  # new state
 
-    def minimax(self, state, depth, max_player=None):
+    def heuristic(self, state):
+        return state.af - state.bf
+
+    def minimax(self, state, depth, max_player=True):
         if depth == 0:  # or node is a terminal node
-            print 'depth is 0!'
-            return  # return the heuristic value of node
+            print 'reached leaf'
+            print state
+            print 'score', self.heuristic(state)
+            return self.heuristic(state) # return the heuristic value of node
 
         if max_player:
             best_val = -999
