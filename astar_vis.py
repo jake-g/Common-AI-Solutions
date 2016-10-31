@@ -73,4 +73,4 @@ def visualize(f):
         msElapsed = clock.tick(FPS)
 
 if __name__ == '__main__':
-    visualize('data_personal.txt')
+    visualize('maps/data_personal.txt')
