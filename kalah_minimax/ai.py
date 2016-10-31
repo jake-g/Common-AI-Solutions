@@ -23,6 +23,22 @@ class ai:
             return 'move: %r\na: %r (%r)\nb: %r (%r)\n' \
                    % (self.last_move, self.a, self.af, self.b, self.bf)
 
+    def move(self, a, b, af, bf, t):
+        depth = 3
+        # f = open('time.txt', 'a')  # Make sure to clean the file before each of your experiment
+        # f.write('Move: depth = ' + str(depth) + '\n')
+        # t_start = time.time()
+        # print 'time', t
+
+        state = ai.state(a, b, af, bf)
+        next_state = self.minimax(state, depth)
+
+        # print '-----'
+        # f.write(str(time.time() - t_start) + '\n')
+        # f.close()
+        # print 'move %r' % move
+        return next_state.last_move
+
     def random_move(self, state):
         r = []  # return a random move
         for i in range(6):  # Nonempty moves
@@ -32,6 +48,7 @@ class ai:
 
     def get_states(self, state, max_player):
         def get_moves():
+            # return non empty pits for player
             if max_player:
                 player = state.a
             else:
@@ -45,6 +62,7 @@ class ai:
             assert state.a[move] > 0
 
             def apply_move(move, board):
+                # apply move to board
                 beads = board[move]
                 board[move] = 0  # grab beads
                 while beads >= 0:
@@ -74,44 +92,6 @@ class ai:
 
         for move in get_moves():
             yield new_state(move)  # new state
-
-    def move(self, a, b, af, bf, t):
-        state = ai.state(a, b, af, bf)
-        depth = 3
-        # f = open('time.txt', 'a')  # Make sure to clean the file before each of your experiment
-        # f.write('Move: depth = ' + str(depth) + '\n')
-        # t_start = time.time()
-        # print 'time', t
-
-        next_state = self.minimax(state, depth)
-
-        print '-----'
-        # f.write(str(time.time() - t_start) + '\n')
-        # f.close()
-        # print 'move %r' % move
-        return next_state.last_move
-
-    # def minimax(self, depth, max_player=True, state=None):
-    #     if depth == 0: # or out of moves
-    #         print 'reached depth'
-    #         return
-    #
-    #     if max_player:
-    #         best_val = -999
-    #         for state in self.get_states(max_player):
-    #             child = self.minimax(depth-1, not max_player, state)
-    #             if child.af > best_val:
-    #                 best_val = child.af
-    #                 best_state = child
-    #
-    #     else :
-    #         best_val = 999
-    #         for state in self.get_states(max_player):
-    #             child = self.minimax(depth-1, not max_player, state)
-    #             if child.af < best_val:
-    #                 best_val = child.af
-    #                 best_state = child
-    #     return best_state
 
     def minimax(self, state, depth, max_player=None):
         if depth == 0:  # or node is a terminal node
