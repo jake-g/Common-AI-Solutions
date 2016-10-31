@@ -84,7 +84,7 @@ class ai:
     def move(self, a, b, af, bf, t):
         self.state = ai.state(a, b, af, bf)
         d = 3  # depth
-        f = open('fuck.txt', 'a')  # Make sure to clean the file before each of your experiment
+        f = open('time.txt', 'a')  # Make sure to clean the file before each of your experiment
         f.write('Move: depth = ' + str(d) + '\n')
         t_start = time.time()
         print 'time', t
