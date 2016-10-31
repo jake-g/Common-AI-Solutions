@@ -1,6 +1,10 @@
 import time
 import random
+import copy
+
 import io
+
+
 
 
 class key:
@@ -18,11 +22,11 @@ class ai:
             self.b = b
             self.af = af
             self.bf = bf
-            self.parent = None
+            self.last_move = None
 
         def __str__(self):
-            return 'a: %r (%r)\nb: %r (%r)\n' \
-                   % (self.a, self.af, self.b, self.bf)
+            return 'last move: %r\na: %r (%r)\nb: %r (%r)\n' \
+                   % (self.last_move, self.a, self.af, self.b, self.bf)
 
     def random_move(self):
         r = []  # return a random move
@@ -34,29 +38,31 @@ class ai:
     def get_states(self):
         def get_moves(player):
             for i, n in enumerate(player):
-                if n > 0:
-                    yield i  # ith hole not empty
+                if n > 0: yield i  # ith hole not empty
 
-        def apply_move(move, player=1):
-            new = self.state
-            if player:  # 1 = player a
-                beads = self.state.a[move]
-                # FINISH THIS!!!!!!!!!
-                if beads > move:
-                    for i in beads % 14
-                    new.a = [n+1 for n in self.state.a]
-                    new.af += 1
+        def new_state(move):
+            # returns new state resulting in applied move
 
-                    print 'score!'
+            assert move < 6
+            assert self.state.a[move] > 0
 
+            new = copy.deepcopy(self.state)  # clone game state
+            new.last_move = move
+            board = new.a + [new.af] + new.b
+            beads = board[move]
+            board[move] = 0 # grab beads
+            while beads >= 0:
+                move += 1
+                board[move % 13] += 1  # drop bead
+                beads -= 1
+
+            new.a = board[0:6]
+            new.af = board[6]
+            new.b = board[7::]
             return new
 
-
-
-
         for move in get_moves(self.state.a):
-            new_state = apply_move(move)
-            yield new_state
+            yield new_state(move)  # new state
 
     def move(self, a, b, af, bf, t):
         self.state = ai.state(a, b, af, bf)
@@ -68,16 +74,15 @@ class ai:
 
         move = self.minimax(d)
 
+        print '-----'
         f.write(str(time.time() - t_start) + '\n')
         f.close()
-        print 'move %r' % move
+        # print 'move %r' % move
         return move
 
     # calling function
     def minimax(self, depth):
-        print self.state
         for state in self.get_states():
             print state
-        print '-----'
         time.sleep(0.1 * depth)
         return self.random_move()
