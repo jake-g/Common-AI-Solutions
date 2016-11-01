@@ -1,5 +1,6 @@
 import copy
 import random
+import time
 
 
 class key:
@@ -17,28 +18,12 @@ class ai:
             self.b = b
             self.af = af
             self.bf = bf
-            self.last_move = 999
+            self.move = None
 
         def __str__(self):
             return 'move: %r\na: %r (%r)\nb: %r (%r)\n' \
-                   % (self.last_move, self.a, self.af, self.b, self.bf)
+                   % (self.move, self.a, self.af, self.b, self.bf)
 
-    def move(self, a, b, af, bf, t):
-        depth = 1
-        # f = open('time.txt', 'a')  # Make sure to clean the file before each of your experiment
-        # f.write('Move: depth = ' + str(depth) + '\n')
-        # t_start = time.time()
-        # print 'time', t
-
-        state = ai.state(a, b, af, bf)
-        self.state = state # store for later
-        move, score = self.minimax(state, depth)
-
-        print '-----'
-        # f.write(str(time.time() - t_start) + '\n')
-        # f.close()
-        # print 'move %r' % move
-        return move
 
     def random_move(self, state):
         r = []  # return a random move
@@ -47,7 +32,7 @@ class ai:
                 r.append(i)
         return r[random.randint(0, len(r) - 1)]
 
-    def get_states(self, state, max_player):
+    def get_states(self, state, max_player=True):
         def get_moves():
             # return non empty pits for player
             if max_player:
@@ -78,7 +63,7 @@ class ai:
                     return (board, False) # turn over
 
             new = copy.deepcopy(state)  # clone game state
-            new.last_move = move
+            new.move = move
 
             if max_player:  # a is moving
                 board = new.a + [new.af] + new.b
@@ -101,39 +86,56 @@ class ai:
             yield new_state(move)  # new state
 
     def heuristic(self, state):
-        # return sum(state.a) - sum(self.state.a) + (state.af - self.state.af)**2
+        # return sum(state.a) - sum(self.parent.a) + (state.af - self.parent.af)**2
         return state.af - state.bf
 
-    def minimax(self, state, depth, max_player=True):
+
+    def minimax(self, state, depth, max_player=False, alpha=-999, beta=999):
         # TODO alpha beta prune
         if depth == 0:  # or node is a terminal node
-            # print 'reached leaf'
-            # print state
-            print 'move', state.last_move
-            print 'score', self.heuristic(state)
-            return state.last_move, self.heuristic(state) # return the heuristic value of node
-
+            ai.leafs_reached += 1 # TODO DEBUG only
+            return self.heuristic(state) # return the heuristic value of node
         if max_player:
             best_val = -999
             for child in self.get_states(state, max_player):
                 if child.go_again:
                     max_player = not max_player
-
-                move, val = self.minimax(child, depth - 1, not max_player)
-                # best_val = max(best_val, val)
-                if val > best_val:
-                    best_move = move
-                    best_val = val
-            return (best_move, best_val)
+                val = self.minimax(child, depth - 1, not max_player, alpha, beta)
+                best_val = max(best_val, val)
+                alpha = max(alpha, best_val)
+                if beta <= alpha:
+                    break
+            return best_val
         else:  # min player
             best_val = 999
             for child in self.get_states(state, max_player):
                 if child.go_again:
                     max_player = not max_player
+                val = self.minimax(child, depth - 1, not max_player)
+                best_val = min(best_val, val)
+                beta = min(beta, best_val)
+                if beta <= alpha:
+                    break
+            return best_val
 
-                move, val = self.minimax(child, depth - 1, not max_player)
-                # best_val = min(best_val, val)
-                if val < best_val:
-                    best_move = move
-                    best_val = val
-            return (best_move, best_val)
+    def move(self, a, b, af, bf, t):
+        depth = 3
+        max_player = True # init
+        parent = ai.state(a, b, af, bf)  # TODO use self.state?
+        self.parent = parent # store for later
+
+        start_time = time.time() # debug
+        ai.leafs_reached = 0 # debug
+
+        best_score = -999
+        for child in self.get_states(parent):
+            score = self.minimax(child, depth)
+            if score > best_score:
+                best_score = score
+                best = child
+        # print parent
+        # print best
+        print 'leaves visited', ai.leafs_reached
+        # print 'elapsed time %f ms' % round(time.time() - start_time, 5)
+
+        return best.move
