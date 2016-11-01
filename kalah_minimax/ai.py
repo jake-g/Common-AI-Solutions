@@ -12,32 +12,33 @@ class ai:
         pass
 
     class state:
-        def __init__(self, a, b, af, bf, parent=None):
+        def __init__(self, a, b, af, bf):
             self.a = a
             self.b = b
             self.af = af
             self.bf = bf
-            self.last_move = None
+            self.last_move = 999
 
         def __str__(self):
             return 'move: %r\na: %r (%r)\nb: %r (%r)\n' \
                    % (self.last_move, self.a, self.af, self.b, self.bf)
 
     def move(self, a, b, af, bf, t):
-        depth = 3
+        depth = 1
         # f = open('time.txt', 'a')  # Make sure to clean the file before each of your experiment
         # f.write('Move: depth = ' + str(depth) + '\n')
         # t_start = time.time()
         # print 'time', t
 
         state = ai.state(a, b, af, bf)
-        next_state = self.minimax(state, depth)
+        self.state = state # store for later
+        move, score = self.minimax(state, depth)
 
-        # print '-----'
+        print '-----'
         # f.write(str(time.time() - t_start) + '\n')
         # f.close()
         # print 'move %r' % move
-        return self.random_move(state)
+        return move
 
     def random_move(self, state):
         r = []  # return a random move
@@ -100,30 +101,39 @@ class ai:
             yield new_state(move)  # new state
 
     def heuristic(self, state):
+        # return sum(state.a) - sum(self.state.a) + (state.af - self.state.af)**2
         return state.af - state.bf
 
     def minimax(self, state, depth, max_player=True):
+        # TODO alpha beta prune
         if depth == 0:  # or node is a terminal node
-            print 'reached leaf'
-            print state
+            # print 'reached leaf'
+            # print state
+            print 'move', state.last_move
             print 'score', self.heuristic(state)
-            return self.heuristic(state) # return the heuristic value of node
+            return state.last_move, self.heuristic(state) # return the heuristic value of node
 
         if max_player:
             best_val = -999
             for child in self.get_states(state, max_player):
-                # if not free_turn(child):
-                #    max_player = not max_player
+                if child.go_again:
+                    max_player = not max_player
 
-                val = self.minimax(child, depth - 1, not max_player)
-                best_val = max(best_val, val)
-            return best_val
+                move, val = self.minimax(child, depth - 1, not max_player)
+                # best_val = max(best_val, val)
+                if val > best_val:
+                    best_move = move
+                    best_val = val
+            return (best_move, best_val)
         else:  # min player
             best_val = 999
             for child in self.get_states(state, max_player):
-                # if not free_turn(child):
-                #    max_player = not max_player
+                if child.go_again:
+                    max_player = not max_player
 
-                val = self.minimax(child, depth - 1, not max_player)
-                best_val = min(best_val, val)
-            return best_val
+                move, val = self.minimax(child, depth - 1, not max_player)
+                # best_val = min(best_val, val)
+                if val < best_val:
+                    best_move = move
+                    best_val = val
+            return (best_move, best_val)
