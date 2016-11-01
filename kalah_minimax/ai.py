@@ -4,27 +4,31 @@ import time
 import multiprocessing
 
 
+def process(child):
+    print child
+    return ai.minimax(child, 4)
 
 class key:
     def key(self):
         return "10jifn2eonvgp1o2ornfdlf-1230"
 
+class State:
+    def __init__(self, a, b, af, bf):
+        self.a = a
+        self.b = b
+        self.af = af
+        self.bf = bf
+        self.move = None
+
+    def __str__(self):
+        return 'move: %r\na: %r (%r)\nb: %r (%r)\n' \
+               % (self.move, self.a, self.af, self.b, self.bf)
 
 class ai:
     def __init__(self):
         self.parent =  None
 
-    class State:
-        def __init__(self, a, b, af, bf):
-            self.a = a
-            self.b = b
-            self.af = af
-            self.bf = bf
-            self.move = None
 
-        def __str__(self):
-            return 'move: %r\na: %r (%r)\nb: %r (%r)\n' \
-                   % (self.move, self.a, self.af, self.b, self.bf)
 
 
     def random_move(self, state):
@@ -122,7 +126,7 @@ class ai:
 
     def move(self, a, b, af, bf, t):
         depth = 4
-        parent = self.State(a, b, af, bf)
+        parent = State(a, b, af, bf)
         self.parent = parent # store for later
 
         start_time = time.time() # debug
@@ -133,6 +137,18 @@ class ai:
 
         best_score = -999
         children = list(self.get_states(parent))
+        print children
+
+
+        def moves():
+            pool = multiprocessing.Pool(multiprocessing.cpu_count())
+            print pool.map(process, children)
+            pool.terminate()
+
+
+        moves()
+
+        # result = sorted(moves(), key=lambda x: x[1], reverse=True)[:1]
         for child in children:
             score = self.minimax(child, depth)
             if score > best_score:
