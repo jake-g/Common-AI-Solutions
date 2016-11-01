@@ -1,6 +1,8 @@
 import copy
 import random
 import time
+import multiprocessing
+
 
 
 class key:
@@ -10,9 +12,9 @@ class key:
 
 class ai:
     def __init__(self):
-        pass
+        self.parent =  None
 
-    class state:
+    class State:
         def __init__(self, a, b, af, bf):
             self.a = a
             self.b = b
@@ -119,23 +121,30 @@ class ai:
             return best_val
 
     def move(self, a, b, af, bf, t):
-        depth = 3
-        max_player = True # init
-        parent = ai.state(a, b, af, bf)  # TODO use self.state?
+        depth = 4
+        parent = self.State(a, b, af, bf)
         self.parent = parent # store for later
 
         start_time = time.time() # debug
         ai.leafs_reached = 0 # debug
+        f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
+        f.write('depth: %d\n' % depth)
+
 
         best_score = -999
-        for child in self.get_states(parent):
+        children = list(self.get_states(parent))
+        for child in children:
             score = self.minimax(child, depth)
             if score > best_score:
                 best_score = score
                 best = child
-        # print parent
-        # print best
-        print 'leaves visited', ai.leafs_reached
-        # print 'elapsed time %f ms' % round(time.time() - start_time, 5)
+        print parent
+        print best
+        elapsed = round(time.time() - start_time, 5)
+        status = 'leaves visited %d\nelapsed time %f ms\n%f ms per leaf\n' \
+              % (ai.leafs_reached, elapsed, ai.leafs_reached/elapsed)
+        print status
+        f.write(status)
+        f.close()
 
         return best.move
