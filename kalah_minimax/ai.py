@@ -3,11 +3,10 @@ import multiprocessing
 import time
 from operator import itemgetter
 
-# TODO python 3 perf diff using yeild from
-DEPTH = 6
+# TODO find a way to exit of over time or dynamic depth based off board??
+# TODO comment code
 
-def process(arg, **kwarg):
-    return ai.minimax(*arg, **kwarg)
+DEPTH = 6
 
 
 class key:
@@ -28,6 +27,10 @@ class State:
                % (self.move, self.a, self.af, self.b, self.bf)
 
 
+def process(arg, **kwarg):
+    return ai.minimax(*arg, **kwarg)
+
+
 class ai:
     def __init__(self):
         self.parent = None
@@ -44,48 +47,34 @@ class ai:
 
         def new_state(move):
             # returns new state resulting in applied move
+            s = copy.deepcopy(state)  # clone game state
+            board = s.a + [s.af] + s.b if max_player else s.b + [s.bf] + s.a
+            s.move = move
+            # apply move to board
+            beads = board[move]
+            board[move] = 0  # grab beads
+            while beads >= 0:
+                move += 1
+                beads -= 1  # drop bead
+                board[move % 13] += 1
 
-            def apply_move(move, board):
-                # apply move to board
-                beads = board[move]
-                board[move] = 0  # grab beads
+            s.go_again = True if move == 6 else False
+            if max_player:
+                s.a = board[0:6]
+                s.af = board[6]
+                s.b = board[7::]
+            else:
+                s.b = board[0:6]
+                s.bf = board[6]
+                s.a = board[7::]
 
-                assert beads > 0
-                assert move < 6
-                while beads >= 0:
-                    move += 1
-                    board[move % 13] += 1  # drop bead
-                    beads -= 1
+            return s
 
-                if move == 6:  # ended in player's pit +1 turn
-                    return (board, True)  # player moves again
-                else:
-                    return (board, False)  # turn over
-
-            new = copy.deepcopy(state)  # clone game state
-            new.move = move
-
-            if max_player:  # a is moving
-                board = new.a + [new.af] + new.b
-                board, go_again = apply_move(move, board)
-                new.go_again = go_again
-                new.a = board[0:6]
-                new.af = board[6]
-                new.b = board[7::]
-            else:  # b is moving
-                board = new.b + [new.bf] + new.a
-                board, go_again = apply_move(move, board)
-                new.go_again = go_again
-                new.b = board[0:6]
-                new.bf = board[6]
-                new.a = board[7::]
-
-            return new
-
-        for move in get_moves():
-            yield new_state(move)  # new state
+        for m in get_moves():
+            yield new_state(m)  # new state
 
     def heuristic(self, state):
+        # TODO make way better one
         # return sum(state.a) - sum(self.parent.a) + (state.af - self.parent.af)**2
         return state.af - state.bf
 
@@ -123,34 +112,34 @@ class ai:
         return self.minimax(child, 4)
 
     def move(self, a, b, af, bf, t):
+        start_time = time.time()  # debug
         parent = State(a, b, af, bf)
         self.parent = parent  # store for later
-
-        start_time = time.time()  # debug
         # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
         # f.write('depth: %d\n' % DEPTH)
 
         children = list(self.get_states(parent))
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
         scores = pool.map(process, zip([self] * len(children), children))
-        best = sorted(zip(scores, children), key=itemgetter(0)).pop() # get best score tuple(score, state)
+        score, best = sorted(zip(scores, children), key=itemgetter(0)).pop()  # get best score tuple(score, state)
         pool.terminate()
 
-        print parent
-        print best[1]
         status = 'elapsed time %f s\n' % round(time.time() - start_time, 5)
+        print parent
+        print best
         print status
         # f.write(status)
         # f.close()
-
-        return best[1].move
+        return best.move
 
 
 if __name__ == "__main__":
     # arbitrary board state
     a = [9, 8, 8, 0, 3, 1]
     b = [9, 3, 1, 3, 11, 11]
-    a_fin = 3; b_fin = 3; t = 0
+    a_fin = 3;
+    b_fin = 3;
+    t = 0
     test = ai()
     timer = time.time()  # debug
     move = test.move(a[:], b[:], a_fin, b_fin, t)
