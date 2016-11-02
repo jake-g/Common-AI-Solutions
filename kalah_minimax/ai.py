@@ -3,11 +3,8 @@ import multiprocessing
 import time
 from operator import itemgetter
 
-# TODO find a way to exit of over time or dynamic depth based off board??
+
 # TODO comment code
-
-DEPTH = 6
-
 
 class key:
     def key(self):
@@ -33,7 +30,7 @@ def process(arg, **kwarg):
 
 class ai:
     def __init__(self):
-        self.parent = None
+        self.init = None
 
     def get_states(self, state, max_player=True):
         def get_moves():
@@ -75,14 +72,12 @@ class ai:
 
     def heuristic(self, state):
         # TODO make way better one
-        # return sum(state.a) - sum(self.parent.a) + (state.af - self.parent.af)**2
         return state.af - state.bf
 
-    def minimax(self, state, depth=DEPTH, max_player=False, alpha=-999, beta=999):
-        # if time.time() - TIME < 0.4:  # or node is a terminal node
-        #     print 'OUTTTA TIME BITCH', time.time() - TIME
-        #     return self.heuristic(state)  # return the heuristic value of node
-        if depth == 0:  # or node is a terminal node
+    def minimax(self, state, depth=None, max_player=False, alpha=-999, beta=999):
+        if depth is None:
+            depth = self.init.depth
+        if depth == 0 or time.time() - self.init.time > self.init.cutoff:
             return self.heuristic(state)  # return the heuristic value of node
         if max_player:
             best_val = -999
@@ -111,37 +106,38 @@ class ai:
         print child
         return self.minimax(child, 4)
 
-    def move(self, a, b, af, bf, t):
-        start_time = time.time()  # debug
-        parent = State(a, b, af, bf)
-        self.parent = parent  # store for later
-        # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
-        # f.write('depth: %d\n' % DEPTH)
+    def move(self, a, b, af, bf, max_time):
+        init = State(a, b, af, bf)
+        self.init = init  # store for later
+        self.init.time = time.time()
+        self.init.cutoff = 0.9  # max_time/1000 * 0.9
+        self.init.depth = 6
 
-        children = list(self.get_states(parent))
+        f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
+        f.write('depth: %d\n' % self.init.depth)
+
+        children = list(self.get_states(init))
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
         scores = pool.map(process, zip([self] * len(children), children))
         score, best = sorted(zip(scores, children), key=itemgetter(0)).pop()  # get best score tuple(score, state)
         pool.terminate()
 
-        status = 'elapsed time %f s\n' % round(time.time() - start_time, 5)
-        print parent
-        print best
-        print status
-        # f.write(status)
-        # f.close()
+        status = 'elapsed time: %f s\n' % round(time.time() - self.init.time, 5)
+        print 'Before %s\nAfter %s\n%s' % (init, best, status)
+        f.write(status)
+        f.close()
         return best.move
+        # TODO ultra failsafe return random if time is max time
+        # TODO maybe store to file parameters to use for improvement. like if elapsed time < VAL: depth +=1
 
 
 if __name__ == "__main__":
     # arbitrary board state
     a = [9, 8, 8, 0, 3, 1]
     b = [9, 3, 1, 3, 11, 11]
-    a_fin = 3;
-    b_fin = 3;
-    t = 0
+    af = 3
+    bf = 3
+    t = 1000
     test = ai()
-    timer = time.time()  # debug
-    move = test.move(a[:], b[:], a_fin, b_fin, t)
-    print 'total time %f s\n' % round(time.time() - timer, 5)
-    print 'move', move
+    move = test.move(a[:], b[:], af, bf, t)
+    print 'Exiting...'
