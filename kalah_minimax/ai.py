@@ -3,10 +3,10 @@ import random
 import time
 import multiprocessing
 
+# TODO python 3 perf diff using yeild from
 
-def process(child):
-    print child
-    return ai.minimax(child, 4)
+def process(arg, **kwarg):
+    return ai.minimax(*arg, **kwarg)
 
 class key:
     def key(self):
@@ -27,8 +27,6 @@ class State:
 class ai:
     def __init__(self):
         self.parent =  None
-
-
 
 
     def random_move(self, state):
@@ -96,7 +94,7 @@ class ai:
         return state.af - state.bf
 
 
-    def minimax(self, state, depth, max_player=False, alpha=-999, beta=999):
+    def minimax(self, state, depth=4, max_player=False, alpha=-999, beta=999):
         # TODO alpha beta prune
         if depth == 0:  # or node is a terminal node
             ai.leafs_reached += 1 # TODO DEBUG only
@@ -124,8 +122,12 @@ class ai:
                     break
             return best_val
 
+    def process(self, child):
+            print child
+            return self.minimax(child, 4)
+
     def move(self, a, b, af, bf, t):
-        depth = 4
+        depth = 6
         parent = State(a, b, af, bf)
         self.parent = parent # store for later
 
@@ -134,19 +136,27 @@ class ai:
         f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
         f.write('depth: %d\n' % depth)
 
-
         best_score = -999
         children = list(self.get_states(parent))
-        print children
+
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        scores = pool.map(process, zip([self]*len(children), children))
+        for i, score in enumerate(scores):
+            if score > best_score:
+                best_score = score
+                best = children[i]
+        pool.terminate()
+
+        # print parent
+        # print best
+        print'elapsed time %f ms\n' % round(time.time() - start_time, 5)
 
 
-        def moves():
-            pool = multiprocessing.Pool(multiprocessing.cpu_count())
-            print pool.map(process, children)
-            pool.terminate()
+        start_time = time.time() # debug
+        ai.leafs_reached = 0 # debug
+        best_score = -999
+        best = None
 
-
-        moves()
 
         # result = sorted(moves(), key=lambda x: x[1], reverse=True)[:1]
         for child in children:
@@ -154,8 +164,8 @@ class ai:
             if score > best_score:
                 best_score = score
                 best = child
-        print parent
-        print best
+        # print parent
+        # print best
         elapsed = round(time.time() - start_time, 5)
         status = 'leaves visited %d\nelapsed time %f ms\n%f ms per leaf\n' \
               % (ai.leafs_reached, elapsed, ai.leafs_reached/elapsed)
