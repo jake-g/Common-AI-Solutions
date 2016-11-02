@@ -1,7 +1,7 @@
 import copy
-import random
-import time
 import multiprocessing
+import time
+from operator import itemgetter
 
 # TODO python 3 perf diff using yeild from
 DEPTH = 6
@@ -9,9 +9,11 @@ DEPTH = 6
 def process(arg, **kwarg):
     return ai.minimax(*arg, **kwarg)
 
+
 class key:
     def key(self):
         return "10jifn2eonvgp1o2ornfdlf-1230"
+
 
 class State:
     def __init__(self, a, b, af, bf):
@@ -25,17 +27,10 @@ class State:
         return 'move: %r\na: %r (%r)\nb: %r (%r)\n' \
                % (self.move, self.a, self.af, self.b, self.bf)
 
+
 class ai:
     def __init__(self):
-        self.parent =  None
-
-
-    def random_move(self, state):
-        r = []  # return a random move
-        for i in range(6):  # Nonempty moves
-            if state.a[i] != 0:
-                r.append(i)
-        return r[random.randint(0, len(r) - 1)]
+        self.parent = None
 
     def get_states(self, state, max_player=True):
         def get_moves():
@@ -65,7 +60,7 @@ class ai:
                 if move == 6:  # ended in player's pit +1 turn
                     return (board, True)  # player moves again
                 else:
-                    return (board, False) # turn over
+                    return (board, False)  # turn over
 
             new = copy.deepcopy(state)  # clone game state
             new.move = move
@@ -94,11 +89,12 @@ class ai:
         # return sum(state.a) - sum(self.parent.a) + (state.af - self.parent.af)**2
         return state.af - state.bf
 
-
     def minimax(self, state, depth=DEPTH, max_player=False, alpha=-999, beta=999):
-        # TODO alpha beta prune
+        # if time.time() - TIME < 0.4:  # or node is a terminal node
+        #     print 'OUTTTA TIME BITCH', time.time() - TIME
+        #     return self.heuristic(state)  # return the heuristic value of node
         if depth == 0:  # or node is a terminal node
-            return self.heuristic(state) # return the heuristic value of node
+            return self.heuristic(state)  # return the heuristic value of node
         if max_player:
             best_val = -999
             for child in self.get_states(state, max_player):
@@ -123,32 +119,40 @@ class ai:
             return best_val
 
     def process(self, child):
-            print child
-            return self.minimax(child, 4)
+        print child
+        return self.minimax(child, 4)
 
     def move(self, a, b, af, bf, t):
         parent = State(a, b, af, bf)
-        self.parent = parent # store for later
+        self.parent = parent  # store for later
 
-        start_time = time.time() # debug
-        f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
-        f.write('depth: %d\n' % DEPTH)
+        start_time = time.time()  # debug
+        # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
+        # f.write('depth: %d\n' % DEPTH)
 
-        best_score = -999
         children = list(self.get_states(parent))
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        scores = pool.map(process, zip([self]*len(children), children))
-        for i, score in enumerate(scores):
-            if score > best_score:
-                best_score = score
-                best = children[i]
+        scores = pool.map(process, zip([self] * len(children), children))
+        best = sorted(zip(scores, children), key=itemgetter(0)).pop() # get best score tuple(score, state)
         pool.terminate()
 
         print parent
-        print best
-        status = 'elapsed time %f ms\n' % round(time.time() - start_time, 5)
+        print best[1]
+        status = 'elapsed time %f s\n' % round(time.time() - start_time, 5)
         print status
-        f.write(status)
-        f.close()
+        # f.write(status)
+        # f.close()
 
-        return best.move
+        return best[1].move
+
+
+if __name__ == "__main__":
+    # arbitrary board state
+    a = [9, 8, 8, 0, 3, 1]
+    b = [9, 3, 1, 3, 11, 11]
+    a_fin = 3; b_fin = 3; t = 0
+    test = ai()
+    timer = time.time()  # debug
+    move = test.move(a[:], b[:], a_fin, b_fin, t)
+    print 'total time %f s\n' % round(time.time() - timer, 5)
+    print 'move', move
