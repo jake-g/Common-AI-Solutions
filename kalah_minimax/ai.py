@@ -3,7 +3,6 @@ import multiprocessing
 import time
 from operator import itemgetter
 
-
 # TODO comment code
 
 class key:
@@ -42,20 +41,24 @@ class ai:
             for i, n in enumerate(player):
                 if n > 0: yield i  # ith hole not empty
 
-        def new_state(move):
+        def new_state(pos):
             # returns new state resulting in applied move
             s = copy.deepcopy(state)  # clone game state
             board = s.a + [s.af] + s.b if max_player else s.b + [s.bf] + s.a
-            s.move = move
+            s.move = pos
             # apply move to board
-            beads = board[move]
-            board[move] = 0  # grab beads
-            while beads >= 0:
-                move += 1
+            beads = board[pos]
+            board[pos] = 0  # grab beads
+            while beads > 0:
+                pos = (pos + 1) % 13
                 beads -= 1  # drop bead
-                board[move % 13] += 1
+                board[pos] += 1
 
-            s.go_again = True if move == 6 else False
+            s.go_again = True if pos == 6 else False
+            if 0 <= pos <= 5 and board[pos] == 1:
+                board[6] += (board[12 - pos] + 1) # move stolen
+                board[pos] = board[12 - pos] = 0 # empty
+
             if max_player:
                 s.a = board[0:6]
                 s.af = board[6]
@@ -70,15 +73,27 @@ class ai:
         for m in get_moves():
             yield new_state(m)  # new state
 
-    def heuristic(self, state):
+
+    def heuristic(self, score, loss, stolen):
         # TODO make way better one
-        return state.af - state.bf
+        # TODO make heuristic class H.loss, H.score, H.calulate()
+        # TODO check for defense? dont leave board in state that opponent can steal>
+        return score + 0.5*stolen - (loss*0.1)**3
+
 
     def minimax(self, state, depth=None, max_player=False, alpha=-999, beta=999):
         if depth is None:
             depth = self.init.depth
         if depth == 0 or time.time() - self.init.time > self.init.cutoff:
-            return self.heuristic(state)  # return the heuristic value of node
+            # TODO messy
+            a_loss = sum(self.init.a) - sum(state.a)
+            b_loss = sum(self.init.b) - sum(state.b)
+            if max_player:
+                score = state.af - self.init.af
+                return self.heuristic(score, a_loss, b_loss)
+            else:
+                score = state.bf - self.init.bf
+                return self.heuristic(score, b_loss, a_loss)
         if max_player:
             best_val = -999
             for child in self.get_states(state, max_player):
@@ -102,19 +117,17 @@ class ai:
                     break
             return best_val
 
-    def process(self, child):
-        print child
-        return self.minimax(child, 4)
 
     def move(self, a, b, af, bf, max_time):
         init = State(a, b, af, bf)
         self.init = init  # store for later
         self.init.time = time.time()
-        self.init.cutoff = 0.9  # max_time/1000 * 0.9
-        self.init.depth = 6
+        self.init.cutoff = .9  # max_time/1000 * 0.9
+        self.init.depth = 7 # TODO use max_time input !
 
-        f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
-        f.write('depth: %d\n' % self.init.depth)
+        #
+        # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
+        # f.write('depth: %d\n' % self.init.depth)
 
         children = list(self.get_states(init))
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
@@ -123,12 +136,12 @@ class ai:
         pool.terminate()
 
         status = 'elapsed time: %f s\n' % round(time.time() - self.init.time, 5)
-        print 'Before %s\nAfter %s\n%s' % (init, best, status)
-        f.write(status)
-        f.close()
+        print self.init.depth,score,status
+
+        # print 'Before %s\nAfter %s\n%s' % (init, best, status)
+        # f.write(status)
+        # f.close()
         return best.move
-        # TODO ultra failsafe return random if time is max time
-        # TODO maybe store to file parameters to use for improvement. like if elapsed time < VAL: depth +=1
 
 
 if __name__ == "__main__":
