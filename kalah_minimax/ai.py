@@ -4,7 +4,7 @@ import time
 from operator import itemgetter
 
 # TODO comment code
-
+DEPTH = 6
 class key:
     def key(self):
         return "10jifn2eonvgp1o2ornfdlf-1230"
@@ -74,11 +74,8 @@ class ai:
             yield new_state(m)  # new state
 
 
-    def heuristic(self, score, loss, stolen):
-        # TODO make way better one
-        # TODO make heuristic class H.loss, H.score, H.calulate()
-        # TODO check for defense? dont leave board in state that opponent can steal>
-        return score + 0.5*stolen - (loss*0.1)**3
+    def heuristic(self, score, loss, stolen, again):
+        return score + 2*again + stolen - (loss*0.1)**3
 
 
     def minimax(self, state, depth=None, max_player=False, alpha=-999, beta=999):
@@ -90,10 +87,10 @@ class ai:
             b_loss = sum(self.init.b) - sum(state.b)
             if max_player:
                 score = state.af - self.init.af
-                return self.heuristic(score, a_loss, b_loss)
+                return self.heuristic(score, a_loss, b_loss, state.go_again)
             else:
                 score = state.bf - self.init.bf
-                return self.heuristic(score, b_loss, a_loss)
+                return self.heuristic(score, b_loss, a_loss, state.go_again)
         if max_player:
             best_val = -999
             for child in self.get_states(state, max_player):
@@ -123,7 +120,7 @@ class ai:
         self.init = init  # store for later
         self.init.time = time.time()
         self.init.cutoff = .9  # max_time/1000 * 0.9
-        self.init.depth = 7 # TODO use max_time input !
+        self.init.depth = DEPTH # TODO use max_time input !
 
         #
         # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
@@ -194,23 +191,22 @@ class ai_simple:
             yield new_state(m)  # new state
 
 
-    def heuristic(self, score, loss, stolen):
-        return (score - (loss*0.3)**2) + stolen
+    def heuristic(self, score, loss, stolen, again):
+        return score + 2*again + stolen - loss/5
 
 
     def minimax(self, state, depth=None, max_player=False, alpha=-999, beta=999):
         if depth is None:
             depth = self.init.depth
         if depth == 0 or time.time() - self.init.time > self.init.cutoff:
-            # # TODO messy
             a_loss = sum(self.init.a) - sum(state.a)
             b_loss = sum(self.init.b) - sum(state.b)
             if max_player:
                 score = state.af - self.init.af
-                return self.heuristic(score, a_loss, b_loss)
+                return self.heuristic(score, a_loss, b_loss, state.go_again)
             else:
                 score = state.bf - self.init.bf
-                return self.heuristic(score, b_loss, a_loss)
+                return self.heuristic(score, b_loss, a_loss, state.go_again)
             # return score
         if max_player:
             best_val = -999
@@ -242,7 +238,7 @@ class ai_simple:
         self.init = init  # store for later
         self.init.time = time.time()
         self.init.cutoff = .9  # max_time/1000 * 0.9
-        self.init.depth = 7 # TODO use max_time input !
+        self.init.depth = DEPTH # TODO use max_time input !
 
         # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
         # f.write('depth: %d\n' % self.init.depth)
