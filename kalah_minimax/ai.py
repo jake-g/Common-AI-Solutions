@@ -4,7 +4,6 @@ import time
 from operator import itemgetter
 
 # TODO comment code
-DEPTH = 6
 class key:
     def key(self):
         return "10jifn2eonvgp1o2ornfdlf-1230"
@@ -75,14 +74,13 @@ class ai:
 
 
     def heuristic(self, score, loss, stolen, again):
-        return score + 2*again + stolen - (loss*0.1)**3
+        return score + (again + stolen)**2 - loss
 
 
     def minimax(self, state, depth=None, max_player=False, alpha=-999, beta=999):
         if depth is None:
             depth = self.init.depth
         if depth == 0 or time.time() - self.init.time > self.init.cutoff:
-            # TODO messy
             a_loss = sum(self.init.a) - sum(state.a)
             b_loss = sum(self.init.b) - sum(state.b)
             if max_player:
@@ -119,12 +117,8 @@ class ai:
         init = State(a, b, af, bf)
         self.init = init  # store for later
         self.init.time = time.time()
-        self.init.cutoff = .9  # max_time/1000 * 0.9
-        self.init.depth = DEPTH # TODO use max_time input !
-
-        #
-        # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
-        # f.write('depth: %d\n' % self.init.depth)
+        self.init.cutoff = max_time/1000 * 0.86  # tuned to return move in < 1 sec
+        self.init.depth = 6
 
         children = list(self.get_states(init))
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
@@ -135,9 +129,6 @@ class ai:
         status = 'elapsed time: %f s\n' % round(time.time() - self.init.time, 5)
         print self.init.depth,score,status
 
-        # print 'Before %s\nAfter %s\n%s' % (init, best, status)
-        # f.write(status)
-        # f.close()
         return best.move
 
 
@@ -192,7 +183,7 @@ class ai_simple:
 
 
     def heuristic(self, score, loss, stolen, again):
-        return score + 2*again + stolen - loss/5
+        return score + (again + stolen)**2 - loss
 
 
     def minimax(self, state, depth=None, max_player=False, alpha=-999, beta=999):
@@ -231,17 +222,29 @@ class ai_simple:
                     break
             return best_val
 
+    def get_depth(self):
+        count = 0
+        for n in self.init.a + self.init.b:
+            if n == 0:
+                count += 1
+        return count + (self.init.af + self.init.bf)
 
     def move(self, a, b, af, bf, max_time):
-        print 'Sup simple simon'
         init = State(a, b, af, bf)
         self.init = init  # store for later
         self.init.time = time.time()
-        self.init.cutoff = .9  # max_time/1000 * 0.9
-        self.init.depth = DEPTH # TODO use max_time input !
+        self.init.cutoff = 2 #max_time/1000 * 0.86  # tuned to return move in < 1 sec
+        self.init.depth = 6
+        depth_factor = self.get_depth()
+        if depth_factor == 0: # FIRST MOVE
+            self.init.depth = 5
 
-        # f = open('debug.txt', 'a')  # Make sure to clean the file before each of your experiment
-        # f.write('depth: %d\n' % self.init.depth)
+        # if depth_factor > 10:
+        #     self.init.depth = 7
+        # if depth_factor > 70:
+        #     self.init.depth = 8
+
+        f = open('log.csv', 'a')  # Make sure to clean the file before each of your experiment
 
         children = list(self.get_states(init))
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
@@ -249,8 +252,10 @@ class ai_simple:
         score, best = sorted(zip(scores, children), key=itemgetter(0)).pop()  # get best score tuple(score, state)
         pool.terminate()
 
-        status = 'elapsed time: %f s\n' % round(time.time() - self.init.time, 5)
-        print self.init.depth,score,status
+        elapsed = round(time.time() - self.init.time, 5)
+        status = 'elapsed time: %f s\n' % elapsed
+        print self.init.depth,score,status,depth_factor
+        f.write('%d,%f,%f,%d\n' % (self.init.depth, depth_factor, elapsed, score))
 
         # print 'Before %s\nAfter %s\n%s' % (init, best, status)
         # f.write(status)
@@ -261,10 +266,17 @@ class ai_simple:
 
 if __name__ == "__main__":
     # arbitrary board state
-    a = [9, 8, 8, 0, 3, 1]
+    a = [9, 8, 8, 1, 2, 1]  # hard
     b = [9, 3, 1, 3, 11, 11]
+
+    # a = [9, 8, 8, 0, 4, 0]  # hard
+    # b = [9, 3, 0, 4, 11, 11]
     af = 3
     bf = 3
+    # a = [ 1,1,3,3,0,3]
+    # b = [2,1,0,3,2,0]
+    # af = 19
+    # bf = 35
     t = 1000
     test = ai()
     move = test.move(a[:], b[:], af, bf, t)
