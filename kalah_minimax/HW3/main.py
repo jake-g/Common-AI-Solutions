@@ -369,10 +369,6 @@ class startUI(QMainWindow):
             entry_ai = getattr(aimodule, 'ai')
             ai = entry_ai()
             move = ai.move(a[:], b[:], a_fin, b_fin, t)
-            if a[move] == 0 :
-                print "illegal move, quit!"
-                sys.exit()
-                
             cagain, ceat = self.updateLocalState(move)
 
             state = self.strState(False)
@@ -384,10 +380,6 @@ class startUI(QMainWindow):
             while cagain:
                 self.allui.lStatus.setText("Bingo! Move again!")
                 move = ai.move(a[:], b[:], a_fin, b_fin, t)
-                if a[move] == 0 :
-                    print "illegal move, quit!"
-                    sys.exit()
-                
                 cagain, ceat = self.updateLocalState(move)
 
                 state = self.strState(False)
@@ -466,11 +458,6 @@ class startUI(QMainWindow):
             self.swap()
 
             move = ai.move(a[:], b[:], a_fin, b_fin, t)
-            
-            if a[move] == 0 :
-                print "illegal move (from player B), quit!"
-                sys.exit()
-                
             cagain, ceat = self.updateLocalState(move)
             print "B" + str(move) + " " + self.strState(True) + " " + str(ceat)
             self.swap()
@@ -482,9 +469,6 @@ class startUI(QMainWindow):
                 self.allui.lStatus.setText("Bingo! Move again!")
                 self.swap()
                 move = ai.move(a[:], b[:], a_fin, b_fin, t)
-                if a[move] == 0 :
-                    print "illegal move (from player B), quit!"
-                    sys.exit()
                 cagain, ceat = self.updateLocalState(move)
                 print "B" + str(move) + " " + self.strState(True) + " " + str(ceat)
                 self.swap()
