@@ -268,10 +268,10 @@ class startUI(QMainWindow):
 
     def checkWin(self):
         if a_fin > 36:
-            self.allui.lStatus.setText('Game Over. You, p2 win!')
+            self.allui.lStatus.setText('Game Over. You win!')
             return 3
         if b_fin > 36:
-            self.allui.lStatus.setText('Game Over. You, p2 lose!')
+            self.allui.lStatus.setText('Game Over. You lose!')
             return 1
         if a_fin == 36 and b_fin == 36:
             self.allui.lStatus.setText('Game Over. Draw!')
@@ -366,9 +366,13 @@ class startUI(QMainWindow):
             firstMove = True
             self.setButtons(False)
             self.allui.lStatus.setText("Playing against internet AI.")
-            entry_ai = getattr(aimodule, 'ai_simple')
+            entry_ai = getattr(aimodule, 'ai')
             ai = entry_ai()
             move = ai.move(a[:], b[:], a_fin, b_fin, t)
+            if a[move] == 0 :
+                print "illegal move, quit!"
+                sys.exit()
+                
             cagain, ceat = self.updateLocalState(move)
 
             state = self.strState(False)
@@ -380,6 +384,10 @@ class startUI(QMainWindow):
             while cagain:
                 self.allui.lStatus.setText("Bingo! Move again!")
                 move = ai.move(a[:], b[:], a_fin, b_fin, t)
+                if a[move] == 0 :
+                    print "illegal move, quit!"
+                    sys.exit()
+                
                 cagain, ceat = self.updateLocalState(move)
 
                 state = self.strState(False)
@@ -453,11 +461,16 @@ class startUI(QMainWindow):
         global state, a, b, a_fin, b_fin
         if gametype == 1:
             self.allui.lStatus.setText("Playing against local AI. Waiting for opponent.")
-            entry_ai = getattr(aimodule, 'ai_simple')
+            entry_ai = getattr(aimodule, 'ai')
             ai = entry_ai()
             self.swap()
 
             move = ai.move(a[:], b[:], a_fin, b_fin, t)
+            
+            if a[move] == 0 :
+                print "illegal move (from player B), quit!"
+                sys.exit()
+                
             cagain, ceat = self.updateLocalState(move)
             print "B" + str(move) + " " + self.strState(True) + " " + str(ceat)
             self.swap()
@@ -469,6 +482,9 @@ class startUI(QMainWindow):
                 self.allui.lStatus.setText("Bingo! Move again!")
                 self.swap()
                 move = ai.move(a[:], b[:], a_fin, b_fin, t)
+                if a[move] == 0 :
+                    print "illegal move (from player B), quit!"
+                    sys.exit()
                 cagain, ceat = self.updateLocalState(move)
                 print "B" + str(move) + " " + self.strState(True) + " " + str(ceat)
                 self.swap()
@@ -514,7 +530,7 @@ class startUI(QMainWindow):
                 if cwin!=0:
                     return
 
-                entry_ai = getattr(aimodule, 'ai_simple')
+                entry_ai = getattr(aimodule, 'ai')
                 ai = entry_ai()
                 move = ai.move(a[:], b[:], a_fin, b_fin, t)
                 cagain, ceat = self.updateLocalState(move)
@@ -539,7 +555,7 @@ class startUI(QMainWindow):
 
                 state = self.strState(not firstMove)
                 rtn = client.service.updateState(hostguid, state)
-                self.allui.lStatus.setText("Playing against internet AI, player 2.")
+                self.allui.lStatus.setText("Playing against internet AI.")
 
 
 if __name__ == "__main__":
